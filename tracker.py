@@ -21,10 +21,19 @@ query = """
     login
     pullRequests(last: 30) {
       nodes {
+        author {
+          login
+        }
         publishedAt
         title
         repository {
           name
+          owner {
+            login
+          }
+          forks {
+            totalCount
+          }
         }
       }
     }
@@ -40,16 +49,22 @@ end_date = datetime.datetime.strptime(
 result = run_query(query)
 username = result["data"]["viewer"]["login"]
 pull_requests = result["data"]["viewer"]["pullRequests"]["nodes"]
-hacktoberfest_pr_count = 0
-hacktoberfest_pr_repos = []
+hacktoberfest_pr_personal_count = 0
+hacktoberfest_pr_other_count = 0
+hacktoberfest_pr_personal_repos = []
+hacktoberfest_pr_other_repos = []
 
 for pr in pull_requests:
     pr_date = datetime.datetime.strptime(
         pr["publishedAt"], "%Y-%m-%dT%H:%M:%SZ")
 
     if start_date <= pr_date <= end_date:
-        hacktoberfest_pr_repos.append(pr["repository"]["name"])
-        hacktoberfest_pr_count += 1
+        if pr["repository"]["owner"]["login"] == username:
+            hacktoberfest_pr_personal_repos.append(pr["repository"]["name"])
+            hacktoberfest_pr_personal_count += 1
+        else:
+            hacktoberfest_pr_other_repos.append(pr["repository"]["name"])
+            hacktoberfest_pr_other_count += 1
 
-print("Username: {}\nPRs raised: {}.\nRepositories: {}".format(
-    username, hacktoberfest_pr_count, {repo for repo in hacktoberfest_pr_repos}))
+print("Username: {}\nPRs raised: Personal - {} and Other - {}.\nPersonal repositories: {}\nOther repositories: {}".format(
+    username, hacktoberfest_pr_personal_count, hacktoberfest_pr_other_count, {repo for repo in hacktoberfest_pr_personal_repos}, {repo for repo in hacktoberfest_pr_other_repos}))
