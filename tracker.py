@@ -12,7 +12,7 @@ def run_query(query):
     if request.status_code == 200:
         return request.json()
     else:
-        raise Exception("Failed: {}. {}".format(request.status_code, query))
+        raise Exception("Failed: {}.".format(request.status_code))
 
 
 query = """
